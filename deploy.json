@@ -1,0 +1,156 @@
+{
+	"version": "1.0.0",
+	"name": "meteor-boilerplate",
+	"projectDirectory": "../meteor-boilerplate",
+	"outputDirectory": "./build",
+	"rootUrl": "https://meteor-boilerplate.com",
+	"mongoUrl": "mongodb://username:password@host.com:port/database?ssl=true",
+	"VPCId": "vpc-xxxxxxxxxxxx",
+	"ELBSubnets": "subnet-xxxxxxxxxxxx,subnet-xxxxxxxxxxxx",
+	"Subnets": "subnet-xxxxxxxxxxxx,subnet-xxxxxxxxxxxx",
+	"SSLCertificateArns": "arn:xxxxxxxxxxxx",
+	"port": "8081",
+	"files": {
+		"/opt/elasticbeanstalk/hooks/appdeploy/pre/50npm.sh": {
+			"mode": "000775",
+			"owner": "root",
+			"group": "root",
+			"content": "set -xe\n\nsudo /opt/elasticbeanstalk/containerfiles/ebnode.py --action npm-install\n"
+		},
+		"/etc/nginx/conf.d/proxy.conf": {
+			"owner": "root",
+			"group": "root",
+			"mode": "000644",
+			"content": "\nupstream nodejs {\n    server 127.0.0.1:8081;\n    keepalive 256;\n}\n\nmap $http_upgrade $connection_upgrade {\n    default upgrade;\n    ''      close;\n}\n\nserver {\n    listen 8080;       \n\n    if ($time_iso8601 ~ \"^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2})\") {\n        set $year $1;\n        set $month $2;\n        set $day $3;\n        set $hour $4;\n    }\n\n    access_log /var/log/nginx/healthd/application.log.$year-$month-$day-$hour healthd;\n    access_log  /var/log/nginx/access.log  main;      \n\n    location / {\n        set $redirect 0;\n\n        if ($http_x_forwarded_proto != \"https\") {\n          set $redirect 1;\n        }\n\n        if ($http_user_agent ~* \"ELB-HealthChecker\") {\n          set $redirect 0;\n        }\n\n        if ($redirect = 1) {\n          return 301 https://$host$request_uri;\n        }\n\n        proxy_pass  http://nodejs;\n        proxy_set_header Connection $connection_upgrade;\n        proxy_set_header Upgrade $http_upgrade; #for websockets\n        proxy_http_version 1.1;\n        proxy_set_header Host $host;\n        proxy_set_header X-Real-IP $remote_addr;\n        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n    }\n\ngzip on;\ngzip_comp_level 4;\ngzip_types text/html text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;\n\n}\n"
+		},
+		"/opt/elasticbeanstalk/hooks/configdeploy/post/99_kill_default_nginx.sh": {
+			"owner": "root",
+			"group": "root",
+			"mode": "000755",
+			"content": "rm -f /etc/nginx/conf.d/00_elastic_beanstalk_proxy.conf\nservice nginx stop \nservice nginx start\n"
+		}
+	},
+	"container_commands": {		
+		"meteor-server-npm-install": {
+			"command": "echo \"meteor fibers fix/hack\"\ncd programs/server\nPATH=\"$PATH:$NODE_HOME/bin\" npm install --production --unsafe-perm\n"
+		},
+		"removeconfig": {
+			"command": "rm -f /tmp/deployment/config/#etc#nginx#conf.d#00_elastic_beanstalk_proxy.conf /etc/nginx/conf.d/00_elastic_beanstalk_proxy.conf"
+		}
+	},
+  	"option_settings": [
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "DeregistrationDelay",
+			"value": "20"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "HealthCheckInterval",
+			"value": "15"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "HealthCheckPath",
+			"value": "/"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "HealthCheckTimeout",
+			"value": "5"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "HealthyThresholdCount",
+			"value": "3"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "UnhealthyThresholdCount",
+			"value": "5"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "MatcherHTTPCode",
+			"value": null
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "Port",
+			"value": "80"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "Protocol",
+			"value": "HTTP"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "StickinessEnabled",
+			"value": "true"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment:process:default",
+			"option_name": "StickinessLBCookieDuration",
+			"value": "43200"
+		},
+		{
+			"namespace": "aws:elbv2:listener:443",
+			"option_name": "DefaultProcess",
+			"value": "default"
+		},
+		{
+			"namespace": "aws:elbv2:listener:443",
+			"option_name": "ListenerEnabled",
+			"value": "true"
+		},
+		{
+			"namespace": "aws:elbv2:listener:443",
+			"option_name": "Protocol",
+			"value": "HTTPS"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:environment",
+			"option_name": "LoadBalancerType",
+			"value": "application"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:command",
+			"option_name": "Timeout",
+			"value": 1200
+		},
+		{
+			"namespace": "aws:ec2:vpc",
+			"option_name": "AssociatePublicIpAddress",
+			"value": "false"
+		},
+		{
+			"namespace": "aws:ec2:vpc",
+			"option_name": "ELBScheme",
+			"value": "public"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:container:nodejs",
+			"option_name": "ProxyServer",
+			"value": "nginx"
+		},
+		{
+			"namespace": "aws:elasticbeanstalk:container:nodejs",
+			"option_name": "GzipCompression",
+			"value": true
+		},
+		{
+			"namespace": " aws:elasticbeanstalk:container:nodejs:staticfiles",
+			"option_name": "/public",
+			"value": "/public"
+		}
+
+	],
+	"commands": {
+		"remove_old_file": {
+			"command": "rm -fr /opt/elasticbeanstalk/hooks/appdeploy/pre/50npm.sh.bak",
+			"ignoreErrors": true
+		}
+	}
+}
+

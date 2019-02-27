@@ -1,0 +1,19 @@
+{
+  "name": "meteor-boilerplate-beanstalk-uploader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "author": "Fabien Maronnaud",
+  "license": "ISC",
+  "dependencies": {
+    "exec": "^0.2.1",
+    "file-system": "*",
+    "fs": "*",
+    "mkdirp": "^0.5.1",
+    "path": "^0.12.7",
+    "rimraf": "^2.6.3"
+  }
+}
