@@ -23,7 +23,7 @@ rimraf.sync(OUTPUT_DIRECTORY);
 /* COMPILING */
 console.log("2) Compiling project");
 process.chdir(PROJECT_DIRECTORY);
-exec('meteor build --directory ../ebs/build/ --architecture os.linux.x86_64 --server ' + CONFIG.rootUrl + ' --mobile-settings settings.json --debug');
+exec('meteor build --directory ../meteor-boilerplate-beanstalk-uploader/build/ --architecture os.linux.x86_64 --server ' + CONFIG.rootUrl + ' --mobile-settings settings.json --debug');
 
 
 /* ENVIRONMENT CONFIG */
@@ -36,7 +36,7 @@ environment.option_settings = CONFIG.option_settings;
 environment.option_settings.push({
 	"namespace" : "aws:elasticbeanstalk:application:environment",
 	"option_name" : "METEOR_SETTINGS_EB",
-	"value": Buffer.from("'" + JSON.stringify(SETTINGS) + "'").toString('base64')
+	"value": Buffer.from(JSON.stringify(SETTINGS)).toString('base64')
 });
 
 environment.option_settings.push({
