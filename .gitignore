@@ -3,3 +3,5 @@ settings-production.json*
 deploy-development.json*
 deploy-production.json*
 package-lock.json
+build/
+node_modules/
